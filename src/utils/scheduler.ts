@@ -33,7 +33,7 @@ export const startBirthdayMessageScheduler = (): void => {
   });
 };
 
-export const sendBirthdayMessage = async (user: IUser): Promise<void> => {
+export const sendBirthdayMessage = async (user: IUser | any): Promise<void> => {
   const maxRetries = 3;
   for (let i = 0; i < maxRetries; i++) {
     try {

@@ -6,7 +6,8 @@
   "scripts": {
     "start": "nodemon --exec ./node_modules/.bin/ts-node src/server.ts",
     "build": "tsc",
-    "test": "jest"
+    "test": "jest",
+    "test:coverage": "jest --coverage"
   },
   "keywords": [],
   "author": "Arjun Sumarlan",
@@ -30,6 +31,7 @@
     "@types/node-cron": "^3.0.11",
     "@types/supertest": "^6.0.2",
     "jest": "^29.7.0",
+    "jest-mock": "^29.7.0",
     "mockdate": "^3.0.5",
     "nodemon": "^2.0.15",
     "supertest": "^7.0.0",
