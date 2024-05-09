@@ -7,7 +7,12 @@ import User, { IUser } from "../models/User";
 export const startBirthdayMessageScheduler = (): void => {
   // Cron runs every one minute
   cron.schedule("* * * * *", async () => {
+    const today = new Date();
     const users = await User.find({
+      birthday: {
+        $dayOfMonth: today.getDate(),
+        $month: today.getMonth() + 1
+      },
       $or: [
         { lastMessageSent: null },
         {
@@ -18,8 +23,8 @@ export const startBirthdayMessageScheduler = (): void => {
       ],
     });
 
-    for (const user of users) {
-      // Sends birthday messages to users at 9 AM their local time, based on the user's location and birthday
+    // Sends birthday messages in batch processing to users at 9 AM their local time, based on the user's location and birthday
+    const sendMessagePromises = users.map(user => {
       const localTime = moment().tz(user.location);
       if (
         localTime.date() === user.birthday.getDate() &&
@@ -27,9 +32,13 @@ export const startBirthdayMessageScheduler = (): void => {
         localTime.hour() === 9 &&
         localTime.minute() === 0
       ) {
-        await sendBirthdayMessage(user);
+        return sendBirthdayMessage(user);
+      } else {
+        return Promise.resolve();
       }
-    }
+    });
+
+    await Promise.allSettled(sendMessagePromises);
   });
 };
 
