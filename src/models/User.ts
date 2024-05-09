@@ -7,6 +7,8 @@ export interface IUser extends Document {
     birthday: Date;
     location: string;
     lastMessageSent: Date | null;
+    lastAttemptedSend: Date | null;
+    messageStatus: string;
 }
 
 const userSchema = new Schema<IUser>({

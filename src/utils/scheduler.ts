@@ -3,6 +3,7 @@ import axios from "axios";
 import moment from "moment-timezone";
 import { delay } from "./helper";
 import User, { IUser } from "../models/User";
+import { MESSAGE_STATUS } from "./constants";
 
 export const startBirthdayMessageScheduler = (): void => {
   // Cron runs every one minute
@@ -11,7 +12,7 @@ export const startBirthdayMessageScheduler = (): void => {
     const users = await User.find({
       birthday: {
         $dayOfMonth: today.getDate(),
-        $month: today.getMonth() + 1
+        $month: today.getMonth() + 1,
       },
       $or: [
         { lastMessageSent: null },
@@ -24,7 +25,7 @@ export const startBirthdayMessageScheduler = (): void => {
     });
 
     // Sends birthday messages in batch processing to users at 9 AM their local time, based on the user's location and birthday
-    const sendMessagePromises = users.map(user => {
+    const sendMessagePromises = users.map((user) => {
       const localTime = moment().tz(user.location);
       if (
         localTime.date() === user.birthday.getDate() &&
@@ -44,6 +45,7 @@ export const startBirthdayMessageScheduler = (): void => {
 
 export const sendBirthdayMessage = async (user: IUser | any): Promise<void> => {
   const maxRetries = 3;
+  user.lastAttemptedSend = new Date();
   for (let i = 0; i < maxRetries; i++) {
     try {
       const response = await axios.post(`${process.env.EMAIL_SERVICE_URL}`, {
@@ -53,12 +55,18 @@ export const sendBirthdayMessage = async (user: IUser | any): Promise<void> => {
 
       if (response?.status === 200) {
         user.lastMessageSent = new Date();
+        user.messageStatus = MESSAGE_STATUS.SENT;
         await user.save();
         console.log("Message sent successfully:", response.data);
+        break;
+      } else {
+        user.messageStatus = MESSAGE_STATUS.FAILED;
+        await user.save();
       }
-      break;
     } catch (error) {
       console.error("Failed to send message:", error);
+      user.messageStatus = MESSAGE_STATUS.FAILED;
+      await user.save();
       if (i < maxRetries - 1) {
         await delay(30000); // Wait for 30 seconds before retrying
       } else {
@@ -66,4 +74,26 @@ export const sendBirthdayMessage = async (user: IUser | any): Promise<void> => {
       }
     }
   }
+};
+
+export const startRecoverUnsentMessageScheduler = (): void => {
+  // Cron runs daily at midnight
+  cron.schedule("0 0 * * *", async () => {
+    const unsentUsers = await User.find({
+      messageStatus: MESSAGE_STATUS.FAILED,
+      lastAttemptedSend: {
+        $lt: new Date(new Date().setDate(new Date().getDate() - 1)), // More than a day ago
+      },
+    });
+
+    if (unsentUsers.length) {
+      console.log(`Recovery process started for ${unsentUsers.length} users.`);
+      // Sends birthday messages in batch processing
+      const sendMessagePromises = unsentUsers.map((user) =>
+        sendBirthdayMessage(user)
+      );
+  
+      await Promise.allSettled(sendMessagePromises);
+    }
+  });
 };
