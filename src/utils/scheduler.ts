@@ -25,19 +25,19 @@ export const startBirthdayMessageScheduler = (): void => {
     });
 
     // Sends birthday messages in batch processing to users at 9 AM their local time, based on the user's location and birthday
-    const sendMessagePromises = users.map((user) => {
-      const localTime = moment().tz(user.location);
-      if (
-        localTime.date() === user.birthday.getDate() &&
-        localTime.month() === user.birthday.getMonth() &&
-        localTime.hour() === 9 &&
-        localTime.minute() === 0
-      ) {
-        return sendBirthdayMessage(user);
-      } else {
-        return Promise.resolve();
-      }
-    });
+    const sendMessagePromises = users
+      .filter((user) => {
+        const localTime = moment().tz(user.location);
+        if (
+          localTime.date() === user.birthday.getDate() &&
+          localTime.month() === user.birthday.getMonth() &&
+          localTime.hour() === 9 &&
+          localTime.minute() === 0
+        ) {
+          return true;
+        }
+      })
+      .map((user) => sendBirthdayMessage(user));
 
     await Promise.allSettled(sendMessagePromises);
   });
@@ -53,7 +53,7 @@ export const sendBirthdayMessage = async (user: IUser | any): Promise<void> => {
         message: `Hey, ${user.firstName} ${user.lastName}, it’s your birthday`,
       });
 
-      if (response?.status === 200) {
+      if (response && response.status === 200) {
         user.lastMessageSent = new Date();
         user.messageStatus = MESSAGE_STATUS.SENT;
         await user.save();
@@ -92,7 +92,7 @@ export const startRecoverUnsentMessageScheduler = (): void => {
       const sendMessagePromises = unsentUsers.map((user) =>
         sendBirthdayMessage(user)
       );
-  
+
       await Promise.allSettled(sendMessagePromises);
     }
   });

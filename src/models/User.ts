@@ -19,7 +19,7 @@ const userSchema = new Schema<IUser>({
     location: { type: String, required: true },
     lastMessageSent: { type: Date },
     lastAttemptedSend: { type: Date },
-    messageStatus: { type: String, required: true }
+    messageStatus: { type: String }
 });
 
 const User = model<IUser>('User', userSchema);

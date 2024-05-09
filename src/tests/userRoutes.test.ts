@@ -103,21 +103,50 @@ describe("User API Errors", () => {
     await mongoose.connect(`${process.env.MONGO_URI}`);
   });
 
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
+
   afterAll(async () => {
     await mongoose.disconnect();
   });
 
   afterEach(async () => {
     await User.deleteMany({});
+    jest.restoreAllMocks();
   });
 
-  it("POST /user should return error for incomplete user data on create", async () => {
-    const res = await request(app).post("/user").send({
-      firstName: "Test",
-      // Missing lastName, birthday, and location
+  test("POST /user should validate user data", async () => {
+    const response = await request(app).post("/user").send({
+      email: "wrong-email",
+      location: "invalid-location",
+      birthday: "20231035", // Incorrect format
+      firstName: "", // Empty
+      lastName: "", // Empty
     });
-    expect(res.statusCode).toEqual(400);
-    expect(res.body).toHaveProperty("message");
+
+    expect(response.status).toBe(400);
+    expect(response.body.errors).toHaveLength(5); // Check for five validation errors
+  });
+
+  it("POST /user should handle save errors gracefully", async () => {
+    User.prototype.save = jest.fn().mockImplementation(() => {
+      throw new Error("Database save error");
+    });
+    
+    const response = await request(app)
+      .post("/user")
+      .send({
+        firstName: "Test",
+        lastName: "User",
+        email: "test.user@gmail.com",
+        birthday: new Date("1990-06-01"),
+        location: "Asia/Jakarta",
+        lastMessageSent: new Date("2022-06-01"),
+      });
+
+    expect(response.status).toBe(500);
+    expect(response.body).toHaveProperty("error", "Database save error");
   });
 
   it("PUT /user/:id should return 404 for updating non-existent user", async () => {
@@ -127,8 +156,52 @@ describe("User API Errors", () => {
     expect(res.statusCode).toEqual(404);
   });
 
+  it("PUT /user/:id should handle save errors gracefully", async () => {
+    User.prototype.save = jest.fn().mockImplementation(() => {
+      throw new Error("Database save error");
+    });
+
+    const user = await User.create({
+      firstName: "Test",
+      lastName: "User",
+      email: "test.user@gmail.com",
+      birthday: new Date("1990-06-01"),
+      location: "Asia/Jakarta"
+    });
+
+    const response = await request(app)
+      .put(`/user/${user._id}`)
+      .send({
+        lastName: "UserEdit"
+      });
+
+    expect(response.status).toBe(500);
+    expect(response.body).toHaveProperty("error", "Database save error");
+  });
+
   it("DELETE /user/:id should return 404 for deleting non-existent user", async () => {
     const res = await request(app).delete("/user/123456789012").send();
     expect(res.statusCode).toEqual(404);
+  });
+  
+  it("DELETE /user/:id should handle save errors gracefully", async () => {
+    const user = await User.create({
+      firstName: "Test",
+      lastName: "User",
+      email: "test.user@gmail.com",
+      birthday: new Date("1990-06-01"),
+      location: "Asia/Jakarta"
+    });
+
+    User.findByIdAndDelete = jest.fn().mockImplementation((id) => {
+      throw new Error("Database error");
+    });
+
+    const response = await request(app)
+      .delete(`/user/${user._id}`)
+      .send();
+
+    expect(response.status).toBe(500);
+    expect(response.body).toHaveProperty("error", "Database error");
   });
 });
