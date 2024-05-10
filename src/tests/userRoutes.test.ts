@@ -48,7 +48,8 @@ describe("User API", () => {
     const nextYear = today.getFullYear() + 1;
     const updatedData = {
       birthday: new Date(`${nextYear}-06-01`).toISOString(),
-    }; // Updating to next year's birthday
+      location: "Asia/Singapore"
+    }; // Updating to next year's birthday & location
 
     const response = await request(app)
       .put(`/user/${user._id}`)
@@ -147,6 +148,29 @@ describe("User API Errors", () => {
 
     expect(response.status).toBe(500);
     expect(response.body).toHaveProperty("error", "Database save error");
+  });
+
+  test("PUT /user/:id should validate user data", async () => {
+    const user = await User.create({
+      firstName: "Test",
+      lastName: "User",
+      email: "test.user@gmail.com",
+      birthday: new Date("1990-06-01"),
+      location: "Asia/Jakarta"
+    });
+
+    const response = await request(app)
+      .put(`/user/${user._id}`)
+      .send({
+        email: "wrong-email",
+        location: "invalid-location",
+        birthday: "20231035", // Incorrect format
+        firstName: "", // Empty
+        lastName: "", // Empty
+      });
+
+    expect(response.status).toBe(400);
+    expect(response.body.errors).toHaveLength(5); // Check for five validation errors
   });
 
   it("PUT /user/:id should return 404 for updating non-existent user", async () => {

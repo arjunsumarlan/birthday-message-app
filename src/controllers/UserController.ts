@@ -20,6 +20,10 @@ export class UserController {
 
   async updateUser(req: Request, res: Response) {
     try {
+      const errors = validationResult(req);
+      if (!errors.isEmpty()) {
+        return res.status(400).json({ errors: errors.array() });
+      }
       const user = await userService.updateUser(req.params.id, req.body);
       if (!user) {
         return res.status(404).send("User not found");
