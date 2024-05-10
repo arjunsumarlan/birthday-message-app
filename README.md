@@ -22,8 +22,8 @@ To install the project, follow these steps:
 
 1. Clone the repository:
     ```bash
-    git clone https://github.com/yourusername/birthday-message-scheduler.git
-    cd birthday-message-scheduler
+    git clone https://github.com/arjunsumarlan/birthday-message-app.git
+    cd birthday-message-app
     ```
 2. Install the dependencies:
     ```bash
@@ -78,7 +78,7 @@ This command will execute all tests written in the `tests/` directory.
 Contributions are welcome! For major changes, please open an issue first to discuss what you would like to change.
 
 ## License
-This project is MIT licensed.
+This project is [MIT licensed](https://github.com/arjunsumarlan/birthday-message-app/blob/master/LICENSE).
 
 ## Contact
-If you have any questions, please contact me at [arjunsumarlan@gmail.com].
+If you have any questions, please contact me at [arjunsumarlan@gmail.com](arjunsumarlan@gmail.com).
