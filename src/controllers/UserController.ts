@@ -1,6 +1,6 @@
 import { Request, Response } from "express";
 import { validationResult } from "express-validator";
-import { UserService } from '../services/UserService';
+import { UserService } from "../services/UserService";
 
 const userService = new UserService();
 
@@ -26,7 +26,7 @@ export class UserController {
       }
       const user = await userService.updateUser(req.params.id, req.body);
       if (!user) {
-        return res.status(404).send("User not found");
+        return res.status(404).send({ error: "User not found" });
       }
       res.json(user);
     } catch (error: any) {
@@ -38,7 +38,7 @@ export class UserController {
     try {
       const user = await userService.deleteUser(req.params.id);
       if (!user) {
-        return res.status(404).send("User not found");
+        return res.status(404).send({ error: "User not found" });
       }
       res.send(user);
     } catch (error: any) {

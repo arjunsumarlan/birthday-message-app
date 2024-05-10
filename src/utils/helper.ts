@@ -5,4 +5,5 @@
  * @param ms The number of milliseconds to delay the execution.
  * @returns A promise that resolves after the specified delay, effectively pausing the async function.
  */
-export const delay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
+export const delay = (ms: number) =>
+  new Promise((resolve) => setTimeout(resolve, ms));

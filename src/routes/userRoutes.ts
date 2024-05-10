@@ -1,6 +1,6 @@
-import { Router } from 'express';
-import { UserController } from '../controllers/UserController';
-import { userValidations } from '../models/validations/userValidations';
+import { Router } from "express";
+import { UserController } from "../controllers/UserController";
+import { userValidations } from "../models/validations/userValidations";
 
 const router = Router();
 const userController = new UserController();

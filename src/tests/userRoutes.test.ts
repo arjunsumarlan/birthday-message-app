@@ -48,7 +48,7 @@ describe("User API", () => {
     const nextYear = today.getFullYear() + 1;
     const updatedData = {
       birthday: new Date(`${nextYear}-06-01`).toISOString(),
-      location: "Asia/Singapore"
+      location: "Asia/Singapore",
     }; // Updating to next year's birthday & location
 
     const response = await request(app)
@@ -134,7 +134,7 @@ describe("User API Errors", () => {
     User.prototype.save = jest.fn().mockImplementation(() => {
       throw new Error("Database save error");
     });
-    
+
     const response = await request(app)
       .post("/user")
       .send({
@@ -156,18 +156,16 @@ describe("User API Errors", () => {
       lastName: "User",
       email: "test.user@gmail.com",
       birthday: new Date("1990-06-01"),
-      location: "Asia/Jakarta"
+      location: "Asia/Jakarta",
     });
 
-    const response = await request(app)
-      .put(`/user/${user._id}`)
-      .send({
-        email: "wrong-email",
-        location: "invalid-location",
-        birthday: "20231035", // Incorrect format
-        firstName: "", // Empty
-        lastName: "", // Empty
-      });
+    const response = await request(app).put(`/user/${user._id}`).send({
+      email: "wrong-email",
+      location: "invalid-location",
+      birthday: "20231035", // Incorrect format
+      firstName: "", // Empty
+      lastName: "", // Empty
+    });
 
     expect(response.status).toBe(400);
     expect(response.body.errors).toHaveLength(5); // Check for five validation errors
@@ -190,14 +188,12 @@ describe("User API Errors", () => {
       lastName: "User",
       email: "test.user@gmail.com",
       birthday: new Date("1990-06-01"),
-      location: "Asia/Jakarta"
+      location: "Asia/Jakarta",
     });
 
-    const response = await request(app)
-      .put(`/user/${user._id}`)
-      .send({
-        lastName: "UserEdit"
-      });
+    const response = await request(app).put(`/user/${user._id}`).send({
+      lastName: "UserEdit",
+    });
 
     expect(response.status).toBe(500);
     expect(response.body).toHaveProperty("error", "Database save error");
@@ -207,23 +203,21 @@ describe("User API Errors", () => {
     const res = await request(app).delete("/user/123456789012").send();
     expect(res.statusCode).toEqual(404);
   });
-  
+
   it("DELETE /user/:id should handle save errors gracefully", async () => {
     const user = await User.create({
       firstName: "Test",
       lastName: "User",
       email: "test.user@gmail.com",
       birthday: new Date("1990-06-01"),
-      location: "Asia/Jakarta"
+      location: "Asia/Jakarta",
     });
 
     User.findByIdAndDelete = jest.fn().mockImplementation((id) => {
       throw new Error("Database error");
     });
 
-    const response = await request(app)
-      .delete(`/user/${user._id}`)
-      .send();
+    const response = await request(app).delete(`/user/${user._id}`).send();
 
     expect(response.status).toBe(500);
     expect(response.body).toHaveProperty("error", "Database error");

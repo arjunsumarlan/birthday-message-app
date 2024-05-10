@@ -80,19 +80,22 @@ describe("Send Birthday Message Tests", () => {
     );
   });
 
-  it('sets message status to FAILED on unsuccessful HTTP status', async () => {
+  it("sets message status to FAILED on unsuccessful HTTP status", async () => {
     const mockUser = {
-      email: 'test.user@gmail.com',
-      firstName: 'Test',
-      lastName: 'User',
+      email: "test.user@gmail.com",
+      firstName: "Test",
+      lastName: "User",
       messageStatus: MESSAGE_STATUS.PENDING,
-      save: jest.fn()
+      save: jest.fn(),
     };
-  
-    (axios.post as jest.Mock).mockResolvedValue({ status: 404, data: 'Not Found' });  // Simulate a non-200 status
-  
+
+    (axios.post as jest.Mock).mockResolvedValue({
+      status: 404,
+      data: "Not Found",
+    }); // Simulate a non-200 status
+
     await messageModule.sendBirthdayMessage(mockUser);
-  
+
     expect(mockUser.messageStatus).toBe(MESSAGE_STATUS.FAILED);
     expect(mockUser.save).toHaveBeenCalled();
   });

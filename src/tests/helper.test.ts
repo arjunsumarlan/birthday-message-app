@@ -2,8 +2,8 @@ import { delay } from "../utils/helper";
 
 jest.useFakeTimers();
 
-describe('delay function', () => {
-  it('delays the execution by a specified amount of time', () => {
+describe("delay function", () => {
+  it("delays the execution by a specified amount of time", () => {
     const ms = 1000; // Delay for 1000 milliseconds
     const mockFn = jest.fn();
 
